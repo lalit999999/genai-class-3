@@ -1,28 +1,39 @@
+import "dotenv/config";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { QdrantVectorStore } from "@langchain/qdrant";
 
-import { OpenAIEmbedings } from "langchain/openai";
 
-async function loadPDF(filePath) {
+async function GenrateVectorembedings(filePath) {
   const loader = new PDFLoader(filePath);
-  const docs = await loader.load();// already 
+  const docs = await loader.load(); // already 
 
 
 
   // Initialize the OpenAI embeddings with your API key and model
-  const embeddings = new OpenAIEmbedings({
-    model : "text-embedding-3-small",
-    apikey : '<YOUR_API_KEY>'
+  const embeddings = new OpenAIEmbeddings({
+    model: "text-embedding-3-small",
+    apiKey: process.env.OPENAI_API_KEY,
+    configuration: {
+      baseURL: "https://openrouter.ai/api/v1",
+    },
   });
 
-  const vectorStore = await QdrantVactorStore.fromExistingCollection(embeddings, {
-    collectionName: "chaicode-docs",
+  const vectorStore = await QdrantVectorStore.fromExistingCollection(embeddings, {
+    collectionName: "attention-is-all-you-need",
     url: "http://localhost:6333",
   });
 
   await vectorStore.addDocuments(docs);
 
   console.log("PDF documents have been loaded and indexed into Qdrant.....");
-//   return docs;
+  //   return docs;
 }
 
-export { loadPDF };
+// export { GenrateVectorembedings };
+
+GenrateVectorembedings('./attention.pdf').then(() => {
+  console.log("Vector embeddings generated and stored successfully.");
+}).catch((error) => {
+  console.error("Error generating vector embeddings:", error);
+});
